@@ -5,6 +5,53 @@ class Bank extends EventEmitter {
     super();
     this.lastId = 0;
     this.agents = {};
+    this._onAdd();
+    this._onGet();
+    this._onWithdraw();
+    this._onError();
+    this._onSend();
+  }
+
+  _onAdd() {
+    this.on('add', (id, sum) => {
+      if (!Object.prototype.hasOwnProperty.call(this.agents, id)) return this.emit('error', 'Контр агент не найден');
+      if (sum <= 0) return this.emit('error', 'Сумма должна быть больше нуля');
+      this.agents[id].balance += sum;
+    });
+  }
+
+  _onGet() {
+    this.on('get', (id, cb) => {
+      if (!Object.prototype.hasOwnProperty.call(this.agents, id)) return this.emit('error', 'Контр агент не найден');
+      const agent = this.agents[id];
+      cb(agent.balance);
+    });
+  }
+
+  _onWithdraw() {
+    this.on('withdraw', (id, sum) => {
+      if (!Object.prototype.hasOwnProperty.call(this.agents, id)) return this.emit('error', 'Контр агент не найден');
+      if (sum <= 0) return this.emit('error', 'Сумма должна быть больше нуля');
+      if (this.agents[id].balance - sum < 0) return this.emit('error', 'Нельзя списать сумму больше чем на счете клиента');
+      this.agents[id].balance -= sum;
+    });
+  }
+
+  _onSend() {
+    this.on('send', (firstId, secondId, sum) => {
+      if (sum <= 0) return this.emit('error', 'Сумма должна быть больше нуля');
+      if (!Object.prototype.hasOwnProperty.call(this.agents, firstId)
+        || !Object.prototype.hasOwnProperty.call(this.agents, secondId)) return this.emit('error', 'Контр агент не найден');
+      if (this.agents[firstId].balance - sum < 0) return this.emit('error', 'Нельзя перевести денег больше чем на счете');
+      this.agents[firstId].balance -= sum;
+      this.agents[secondId].balance += sum;
+    });
+  }
+
+  _onError() {
+    this.on('error', (error) => {
+      console.log(error);
+    });
   }
 
   _newId() {
@@ -34,39 +81,8 @@ const personSecondId = bank.register({
   balance: 700,
 });
 
-bank.on('add', (id, sum) => {
-  if (!Object.prototype.hasOwnProperty.call(bank.agents, id)) return bank.emit('error', 'Контр агент не найден');
-  if (sum <= 0) return bank.emit('error', 'Сумма должна быть больше нуля');
-  bank.agents[id].balance += sum;
-});
-
-bank.on('get', (id, cb) => {
-  if (!Object.prototype.hasOwnProperty.call(bank.agents, id)) return bank.emit('error', 'Контр агент не найден');
-  const agent = bank.agents[id];
-  cb(agent.balance);
-});
-
-bank.on('withdraw', (id, sum) => {
-  if (!Object.prototype.hasOwnProperty.call(bank.agents, id)) return bank.emit('error', 'Контр агент не найден');
-  if (sum <= 0) return bank.emit('error', 'Сумма должна быть больше нуля');
-  if (bank.agents[id].balance - sum < 0) return bank.emit('error', 'Нельзя списать сумму больше чем на счете клиента');
-  bank.agents[id].balance -= sum;
-});
-
-bank.on('send', (firstId, secondId, sum) => {
-  if (sum <= 0) return bank.emit('error', 'Сумма должна быть больше нуля');
-  if (!Object.prototype.hasOwnProperty.call(bank.agents, firstId)
-    || !Object.prototype.hasOwnProperty.call(bank.agents, secondId)) return bank.emit('error', 'Контр агент не найден');
-  if (bank.agents[firstId].balance - sum < 0) return bank.emit('error', 'Нельзя перевести денег больше чем на счете');
-  bank.agents[firstId].balance -= sum;
-  bank.agents[secondId].balance += sum;
-});
-
-bank.on('error', (error) => {
-  console.log(error);
-});
-
 bank.emit('send', personFirstId, personSecondId, 50);
 bank.emit('get', personSecondId, (balance) => {
   console.log(`I have ${balance}₴`); // I have 750₴
 });
+// console.log(bank);

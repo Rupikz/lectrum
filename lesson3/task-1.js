@@ -5,6 +5,41 @@ class Bank extends EventEmitter {
     super();
     this.lastId = 0;
     this.agents = {};
+    this._onAdd();
+    this._onGet();
+    this._onWithdraw();
+    this._onError();
+  }
+
+  _onAdd() {
+    this.on('add', (id, sum) => {
+      if (!Object.prototype.hasOwnProperty.call(this.agents, id)) return this.emit('error', 'Контр агент не найден');
+      if (sum <= 0) return this.emit('error', 'Сумма должна быть больше нуля');
+      this.agents[id].balance += sum;
+    });
+  }
+
+  _onGet() {
+    this.on('get', (id, cb) => {
+      if (!Object.prototype.hasOwnProperty.call(this.agents, id)) return this.emit('error', 'Контр агент не найден');
+      const agent = this.agents[id];
+      cb(agent.balance);
+    });
+  }
+
+  _onWithdraw() {
+    this.on('withdraw', (id, sum) => {
+      if (!Object.prototype.hasOwnProperty.call(this.agents, id)) return this.emit('error', 'Контр агент не найден');
+      if (sum <= 0) return this.emit('error', 'Сумма должна быть больше нуля');
+      if (this.agents[id].balance - sum < 0) return this.emit('error', 'Нельзя списать сумму больше чем на счете клиента');
+      this.agents[id].balance -= sum;
+    });
+  }
+
+  _onError() {
+    this.on('error', (error) => {
+      console.log(error);
+    });
   }
 
   _newId() {
@@ -27,29 +62,6 @@ const bank = new Bank();
 const personId = bank.register({
   name: 'Pitter Black',
   balance: 100,
-});
-
-bank.on('add', (id, sum) => {
-  if (!Object.prototype.hasOwnProperty.call(bank.agents, id)) return bank.emit('error', 'Контр агент не найден');
-  if (sum <= 0) return bank.emit('error', 'Сумма должна быть больше нуля');
-  bank.agents[id].balance += sum;
-});
-
-bank.on('get', (id, cb) => {
-  if (!Object.prototype.hasOwnProperty.call(bank.agents, id)) return bank.emit('error', 'Контр агент не найден');
-  const agent = bank.agents[id];
-  cb(agent.balance);
-});
-
-bank.on('withdraw', (id, sum) => {
-  if (!Object.prototype.hasOwnProperty.call(bank.agents, id)) return bank.emit('error', 'Контр агент не найден');
-  if (sum <= 0) return bank.emit('error', 'Сумма должна быть больше нуля');
-  if (bank.agents[id].balance - sum < 0) return bank.emit('error', 'Нельзя списать сумму больше чем на счете клиента');
-  bank.agents[id].balance -= sum;
-});
-
-bank.on('error', (error) => {
-  console.log(error);
 });
 
 bank.emit('add', personId, 20);

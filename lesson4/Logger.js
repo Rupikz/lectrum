@@ -15,13 +15,13 @@ class Logger extends Transform {
   }
 
   _transform(chunk, encoding, callback) {
-    this.db.emit('save', chunk);
+    this.db.save(chunk);
     this.push(chunk);
     callback();
   }
 
   _flush(callback) {
-    this.db.emit('get');
+    this.db.get();
     callback();
   }
 }

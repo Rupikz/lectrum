@@ -7,6 +7,14 @@ class Db extends EventEmitter {
     this.init();
   }
 
+  save(chunk) {
+    this.emit('save', chunk);
+  }
+
+  get() {
+    this.emit('get');
+  }
+
   init() {
     this.on('save', (chunk) => {
       const data = {

@@ -14,10 +14,10 @@ class AccountManager extends Writable { // Хранилище данных
     });
   }
 
-  _write(chunk, encoding, done) {
+  _write(chunk, encoding, callback) {
     console.log('write from source -->', chunk.payload || chunk);
     this.storage.push(chunk);
-    done();
+    callback();
   }
 }
 

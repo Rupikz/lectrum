@@ -17,4 +17,5 @@ const customers = [
 const ui = new Ui(customers);
 const guardian = new Guardian();
 const manager = new AccountManager();
+
 ui.pipe(guardian).pipe(manager);

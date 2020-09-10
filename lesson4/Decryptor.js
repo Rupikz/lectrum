@@ -1,12 +1,5 @@
 const { Transform } = require('stream');
-
-const check = (field, algorithm) => {
-  if (algorithm !== 'hex' && algorithm !== 'base64') {
-    throw new Error('Выбран неизвестный алгоритм');
-  }
-
-  return Buffer.from(field, algorithm).toString('utf8');
-};
+const { decryptor } = require('./helpers');
 
 class Decryptor extends Transform {
   constructor() {
@@ -24,12 +17,12 @@ class Decryptor extends Transform {
     const { payload, meta } = chunk;
     if (!payload || !meta || !meta.algorithm
           || !payload.name || !payload.email || !payload.password) {
-      throw new Error('Неверная структура алгоритма');
+      throw new Error('Неверная структура объекта');
     }
     const customer = {
       name: payload.name,
-      email: check(payload.email, meta.algorithm),
-      password: check(payload.password, meta.algorithm),
+      email: decryptor(payload.email, meta.algorithm),
+      password: decryptor(payload.password, meta.algorithm),
     };
     this.push(customer);
     callback();

@@ -1,4 +1,5 @@
 const { Transform } = require('stream');
+const { cryptor } = require('./helpers');
 
 class Guardian extends Transform { // Шифрование
   constructor() {
@@ -17,7 +18,7 @@ class Guardian extends Transform { // Шифрование
     });
   }
 
-  _transform(chunk, encoding, done) {
+  _transform(chunk, encoding, callback) {
     const chunkObj = chunk;
     if (!chunkObj.name) throw new Error('Name не указан');
     if (!chunkObj.email) throw new Error('Email не указан');
@@ -28,12 +29,12 @@ class Guardian extends Transform { // Шифрование
       },
       payload: {
         name: chunkObj.name,
-        email: Buffer.from(chunkObj.email, 'utf8').toString('hex'),
-        password: Buffer.from(chunkObj.password, 'utf8').toString('hex'),
+        email: cryptor(chunkObj.email),
+        password: cryptor(chunkObj.password),
       },
     };
     this.push(customer);
-    done();
+    callback();
   }
 }
 

@@ -4,9 +4,6 @@ const client = new Socket();
 client.connect(8080, () => {
   const data = {
     filter: {
-      // name: {
-      //   first: 'John',
-      // },
       email: '@yahoo.com',
     },
     meta: {
